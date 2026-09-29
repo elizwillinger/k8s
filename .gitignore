@@ -1,0 +1,66 @@
+# ---------- Terraform ----------
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+!example.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+*.tfplan
+tfplan
+
+# ---------- Secrets / credentials ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+id_rsa*
+id_ed25519*
+secrets.*
+*.secret
+*.secrets
+credentials
+credentials.json
+service-account*.json
+
+# ---------- Cloud / Kubernetes config ----------
+.aws/
+.kube/
+kubeconfig
+kubeconfig*
+*.kubeconfig
+
+# ---------- Docker ----------
+docker-compose.override.yml
+
+# ---------- Dependencies / build output ----------
+node_modules/
+vendor/composer/
+dist/
+build/
+*.log
+
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Editors / IDEs ----------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
