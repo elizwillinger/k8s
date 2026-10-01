@@ -108,3 +108,25 @@ kubectl get svc website-service -w
 ### Outcome
 - Website accessible at: `http://a00408d7df4b445b9a42bd3e359b89e5-2042941864.us-east-2.elb.amazonaws.com`
 - HTTP 200 confirmed — full page renders with products from the database
+
+## Step 6: Implement Configuration Management
+
+### What was done
+- Created `manifests/feature-toggle-config.yaml` — ConfigMap `feature-toggle-config` with `FEATURE_DARK_MODE=true`
+- Updated `manifests/website.yaml` — added `FEATURE_DARK_MODE` env var via `configMapKeyRef` referencing the ConfigMap, updated image tag to `v2`
+- Updated `app/index.php` — checks `$_ENV['FEATURE_DARK_MODE']`; when `true`, injects a dark mode CSS `<style>` block and adds `dark-mode` class to `<html>`
+- Updated `app/Dockerfile` — added `FEATURE_DARK_MODE=false` as the default env var
+
+### Deploy
+```powershell
+# Rebuild and push the updated image
+ docker build -t ezwill/labrepo:v2 app/
+docker push ezwill/labrepo:v2
+
+# Apply ConfigMap + Deployment
+kubectl apply -f manifests/
+```
+
+### Outcome
+- Website renders in dark mode — dark backgrounds, light text, accent-colored links
+- Demonstrates how ConfigMaps manage application features without code redeployment (toggle the ConfigMap value and restart pods to change behavior)
