@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="<?php echo ($_ENV['FEATURE_DARK_MODE'] === 'true') ? 'dark-mode' : ''; ?>">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -29,6 +29,23 @@
           <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
           <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
+        <?php if ($_ENV['FEATURE_DARK_MODE'] === 'true'): ?>
+        <style>
+            body { background-color: #1a1a2e !important; color: #e0e0e0 !important; }
+            .main_header_area, .navbar-default { background-color: #16213e !important; }
+            .navbar-default .navbar-nav > li > a { color: #e0e0e0 !important; }
+            .navbar-default .navbar-brand { color: #e0e0e0 !important; }
+            .slider_area { background-color: #0f3460 !important; }
+            .camera_caption h2, .camera_caption h5 { color: #e0e0e0 !important; }
+            .business_content { background-color: #1a1a2e !important; border-color: #16213e !important; }
+            .media-body a { color: #e94560 !important; }
+            .media-body span { color: #e94560 !important; }
+            .check_tittle h2 { color: #e0e0e0 !important; }
+            .footer_area { background-color: #16213e !important; }
+            .copy_right h4 { color: #e0e0e0 !important; }
+            .error-content h1 { color: #e94560 !important; }
+        </style>
+        <?php endif; ?>
     </head>
     <body>
         <!--==========Main Header==========-->

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: website
-        image: ezwill/labrepo:v1
+        image: ezwill/labrepo:v2
         ports:
         - containerPort: 80
         env:
@@ -28,6 +28,11 @@ spec:
           value: "ecompassword"
         - name: DB_NAME
           value: "ecomdb"
+        - name: FEATURE_DARK_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: feature-toggle-config
+              key: FEATURE_DARK_MODE
         resources:
           requests:
             memory: "128Mi"
