@@ -70,6 +70,9 @@ module "eks" {
   # Node IAM role — the module creates one by default with the right policies
   create_node_iam_role = true
 
+  # Prevent multiple security groups with ambiguous cluster tags
+  create_node_security_group = false
+
   # ---------- Node Group ----------
 
   eks_managed_node_group_defaults = {

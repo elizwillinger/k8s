@@ -68,3 +68,43 @@ kubectl get pods -A
 - The `enable_cluster_creator_admin_permissions = true` flag is required in the EKS module to grant the Terraform runner admin access to the cluster
 - AL2023 nodes use **containerd** as the CRI (not Docker)
 - Cluster version: 1.36
+
+## Step 4: Deploy Website to Kubernetes
+
+### What was done
+- Created `manifests/website.yaml` — Deployment (`website`) running `ezwill/labrepo:v1` with DB connection env vars (`DB_HOST=mysql-service`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`)
+- Created `manifests/mysql.yaml` — ConfigMap + MySQL Deployment
+- Created `manifests/mysql-service.yaml` — MySQL ClusterIP Service
+- Reorganized all manifests into intuitive filenames (removed old numbered files)
+
+### Deploy
+```powershell
+# Deploy everything at once (DB + website)
+kubectl apply -f manifests/
+
+# Verify pods are running
+kubectl get pods
+kubectl get deployments
+```
+
+### Notes
+- `ErrImagePull` was caused by Docker Hub private repo — fixed by making `ezwill/labrepo` public
+- EKS managed node group update (adding `create_node_security_group = false`) took ~16 min
+- See `TODO.md` for the security improvement (dedicated node SGs)
+
+## Step 5: Expose Your Website
+
+### What was done
+- Created `manifests/website-service.yaml` — LoadBalancer Service exposing the website externally
+
+### Deploy
+```powershell
+kubectl apply -f manifests/website-service.yaml
+
+# Wait for the LoadBalancer to provision (2-5 min)
+kubectl get svc website-service -w
+```
+
+### Outcome
+- Website accessible at: `http://a00408d7df4b445b9a42bd3e359b89e5-2042941864.us-east-2.elb.amazonaws.com`
+- HTTP 200 confirmed — full page renders with products from the database
