@@ -51,12 +51,17 @@ A $20/month cost budget is created automatically with alerts at **80%** ($16) an
 
 ## Destroy
 
-```bash
-terraform destroy
-```
-
 > **Warning:** This will delete the EKS cluster, node group, VPC, budget, and
 > all associated resources.
+
+```bash
+# 1. Delete Kubernetes LoadBalancer services (tears down external ELBs)
+kubectl delete -f manifests/website-service.yaml
+kubectl get svc -A   # confirm no LoadBalancer services remain
+
+# 2. Tear down all AWS resources
+terraform destroy
+```
 
 ## Files
 

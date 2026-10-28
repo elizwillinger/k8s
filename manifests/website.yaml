@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: website
-        image: ezwill/labrepo:v2
+        image: ezwill/labrepo:v5
         ports:
         - containerPort: 80
         env:

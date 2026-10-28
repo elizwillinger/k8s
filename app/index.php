@@ -29,6 +29,8 @@
           <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
           <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
+        <!-- Offset fixed navbar so the promo banner is visible -->
+        <style>.navbar-fixed-top { top: 56px !important; }</style>
         <?php if ($_ENV['FEATURE_DARK_MODE'] === 'true'): ?>
         <style>
             body { background-color: #1a1a2e !important; color: #e0e0e0 !important; }
@@ -48,6 +50,12 @@
         <?php endif; ?>
     </head>
     <body>
+        <!--==========Promotional Banner==========-->
+        <div class="promo-banner" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1050; box-sizing: border-box; background-color: #e74c3c; color: white; text-align: center; padding: 15px; font-size: 18px; font-weight: bold;">
+            🎉 Summer Sale! Use code PROMO20 for 20% off your first order! 🎉
+        </div>
+        <!--==========Promotional Banner==========-->
+
         <!--==========Main Header==========-->
         <header class="main_header_area">
             <nav class="navbar navbar-default navbar-fixed-top" id="main_navbar">

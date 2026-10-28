@@ -109,6 +109,10 @@ kubectl get svc website-service -w
 - Website accessible at: `http://a00408d7df4b445b9a42bd3e359b89e5-2042941864.us-east-2.elb.amazonaws.com`
 - HTTP 200 confirmed — full page renders with products from the database
 
+> **Note:** This creates an external AWS ELB that is **not** tracked by Terraform.
+> When ready to destroy the cluster, see [`terraform/README.md`](terraform/README.md)
+> for the correct destroy workflow (must delete the LoadBalancer service first).
+
 ## Step 6: Implement Configuration Management
 
 ### What was done
@@ -130,3 +134,57 @@ kubectl apply -f manifests/
 ### Outcome
 - Website renders in dark mode — dark backgrounds, light text, accent-colored links
 - Demonstrates how ConfigMaps manage application features without code redeployment (toggle the ConfigMap value and restart pods to change behavior)
+
+## Step 8: Perform a Rolling Update
+
+### What was done
+- Modified `app/index.php` to add a promotional banner for the marketing campaign
+- Built and pushed the updated image as `ezwill/labrepo:v5` to Docker Hub
+- Updated `manifests/website.yaml` with the new image tag (`v5`)
+- Applied the update with `kubectl apply -f manifests/website.yaml`
+- Monitored the rolling update with `kubectl rollout status deployment/website`
+
+### Deploy
+```powershell
+# Build and push the updated image
+docker build -t ezwill/labrepo:v5 app/
+docker push ezwill/labrepo:v5
+
+# Apply the rolling update
+kubectl apply -f manifests/website.yaml
+
+# Monitor rollout
+kubectl rollout status deployment/website --watch
+```
+
+### Outcome
+- The website updated with zero downtime — existing pods served traffic while new pods came up
+- Demonstrates Kubernetes' rolling update strategy: gradual replacement of old pods with new ones
+
+## Step 10: Autoscale Your Application
+
+### What was done
+- Installed metrics-server for Kubernetes metrics (`kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml`)
+- Created `manifests/05-hpa.yaml` — HorizontalPodAutoscaler targeting 50% CPU utilization, min 3 / max 10 replicas
+- Verified autoscaling under load with `ab -n 10000 -c 200` against the LoadBalancer endpoint
+- Observed HPA scaling from 3 → 10 pods and back down after load stopped (~5 min stabilization window)
+
+### Deploy HPA
+```powershell
+kubectl apply -f manifests/05-hpa.yaml
+
+# Verify
+kubectl get hpa website -w
+```
+
+### Load test
+```bash
+# From WSL2 or any machine with ab installed
+ab -n 10000 -c 200 http://<EXTERNAL-IP>/
+```
+
+### Notes
+- HPA measures CPU utilization against each pod's **request** (100m), not the limit
+- Scale-down uses a 5-minute stabilization window by default to prevent flapping
+- The HPA formula: `desiredReplicas = ceil(currentReplicas × currentUtilization / targetUtilization)`
+- metrics-server is installed imperatively for now; TODO: migrate to `aws_eks_addon` in Terraform

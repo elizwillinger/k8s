@@ -1,5 +1,25 @@
 # TODO
 
+## Infra: Add metrics-server as an EKS managed add-on
+
+**Status:** Open — installed imperatively via `kubectl apply -f`.
+
+**Why:** The current install (from the components.yaml manifest) is ephemeral. It will be lost on `terraform destroy` / `terraform apply` and isn't version-controlled in the repo. The EKS managed add-on survives cluster lifecycle operations and is managed by Terraform.
+
+**What to do:**
+1. Add `aws_eks_addon` resource in Terraform for metrics-server
+2. Ensure the EKS cluster has the `AmazonEKSMetricsServerPolicy` IAM policy attached
+3. Remove the imperative `kubectl apply -f` from any scripts or docs referencing metrics-server
+
+**Example:**
+```hcl
+resource "aws_eks_addon" "metrics_server" {
+  cluster_name      = aws_eks_cluster.main.name
+  addon_name        = "metrics-server"
+  resolve_conflicts = "OVERWRITE"
+}
+```
+
 ## Security: Replace `create_node_security_group = false` with dedicated node SGs
 
 **Status:** Open — using convenience flag for lab simplicity.
