@@ -242,3 +242,37 @@ kubectl get endpoints website-service
 - Readiness probe correctly removed the pod from the service endpoints when MySQL was unavailable, preventing traffic to a broken pod
 - When MySQL came back online, the readiness probe detected it and restored traffic automatically
 - Demonstrates self-healing and traffic management — core reliability patterns for production workloads
+
+## Step 12: Utilize ConfigMaps and Secrets
+
+### What was done
+- Created `manifests/database-secret.yaml` — Kubernetes Secret (`Opaque`) containing all DB connection details: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (base64-encoded)
+- Updated `manifests/website.yaml` — replaced plain `value` env vars with `valueFrom.secretKeyRef` pointing to `database-secret`
+- `FEATURE_DARK_MODE` remains in `manifests/feature-toggle-config.yaml` (ConfigMap) — non-sensitive feature flags stay separate from secrets
+- No image rebuild needed — only manifest changes
+
+### Deploy
+```powershell
+# Apply Secret + Deployment
+kubectl apply -f manifests/database-secret.yaml
+kubectl apply -f manifests/website.yaml
+
+# Verify rollout
+kubectl rollout status deployment/website --watch
+```
+
+### Verify
+```powershell
+# Confirm env vars come from Secret, not plain text
+kubectl get pod <pod-name> -o jsonpath='{.spec.containers[0].env[*].valueFrom}'
+# Output shows secretKeyRef for DB vars, configMapKeyRef for FEATURE_DARK_MODE
+
+# Confirm the website is still working
+kubectl get endpoints website-service
+```
+
+### Outcome
+- Sensitive DB credentials are no longer stored as plaintext in the Deployment manifest
+- All DB connection details are externalized into a Kubernetes Secret
+- Feature toggles remain in a ConfigMap — separating sensitive from non-sensitive config
+- Demonstrates the Kubernetes-native pattern for managing application configuration and secrets

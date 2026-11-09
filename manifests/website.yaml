@@ -21,13 +21,25 @@ spec:
         - containerPort: 80
         env:
         - name: DB_HOST
-          value: "mysql-service"
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: DB_HOST
         - name: DB_USER
-          value: "ecomuser"
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: DB_USER
         - name: DB_PASSWORD
-          value: "ecompassword"
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: DB_PASSWORD
         - name: DB_NAME
-          value: "ecomdb"
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: DB_NAME
         - name: FEATURE_DARK_MODE
           valueFrom:
             configMapKeyRef:

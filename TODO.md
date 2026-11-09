@@ -80,4 +80,63 @@ eks_managed_node_groups = {
     # ...
   }
 }
+
+## Security: Replace static Kubernetes Secrets with External Secrets Operator
+
+**Status:** Open — DB credentials stored as base64-encoded values in a Kubernetes Secret manifest.
+
+**Why:** Currently, `database-secret.yaml` contains base64-encoded credentials committed to the repo. Base64 is encoding, not encryption — anyone with repo access can decode them. In production, credentials should live in a secrets manager (AWS Secrets Manager or SSM Parameter Store) and be synced into Kubernetes automatically.
+
+**What to do:**
+1. Install the External Secrets Operator (ESO) in the cluster
+2. Create an IAM role with permissions to read from Secrets Manager / SSM Parameter Store
+3. Use IRSA to bind the ESO service account to that IAM role
+4. Create an `ExternalSecret` resource that references the AWS secret
+5. ESO will sync the value into a Kubernetes `Secret` automatically
+6. Remove `database-secret.yaml` from the repo
+
+**Example ExternalSecret:**
+```yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: database-secret
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-secretsmanager
+    kind: ClusterSecretStore
+  target:
+    name: database-secret
+  data:
+    - secretKey: DB_HOST
+      remoteRef:
+        key: /k8slab/db/host
+    - secretKey: DB_NAME
+      remoteRef:
+        key: /k8slab/db/name
+    - secretKey: DB_USER
+      remoteRef:
+        key: /k8slab/db/user
+    - secretKey: DB_PASSWORD
+      remoteRef:
+        key: /k8slab/db/password
+```
+
+**Example ClusterSecretStore:**
+```yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: aws-secretsmanager
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: us-east-2
+      auth:
+        jwt:
+          serviceAccountRef:
+            name: external-secrets
+            namespace: external-secrets
 ```
