@@ -20,6 +20,28 @@ resource "aws_eks_addon" "metrics_server" {
 }
 ```
 
+## Infra: Migrate from `v1 Endpoints` to `discovery.k8s.io/v1 EndpointSlice`
+
+**Status:** Open — `kubectl get endpoints` shows a deprecation warning.
+
+**Why:** `v1 Endpoints` is deprecated in Kubernetes 1.33+ and will be removed in a future release. The replacement is `discovery.k8s.io/v1 EndpointSlice`, which scales better for large clusters.
+
+**What to do:**
+1. Update any scripts/docs that query `kubectl get endpoints` to use `kubectl get endpointslices` instead
+2. Update any manifests or automation that creates Endpoints resources to use EndpointSlice resources
+3. Verify all services still route traffic correctly after the migration
+
+**Example:**
+```powershell
+# Old (deprecated)
+kubectl get endpoints website-service
+
+# New
+kubectl get endpointslices -l kubernetes.io/service-name=website-service
+```
+
+**Note:** This is a read-only change for now — `kubectl get endpoints` still works but prints a warning. Plan to migrate before the resource is fully removed in a future EKS/K8s version.
+
 ## Security: Replace `create_node_security_group = false` with dedicated node SGs
 
 **Status:** Open — using convenience flag for lab simplicity.

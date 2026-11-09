@@ -188,3 +188,57 @@ ab -n 10000 -c 200 http://<EXTERNAL-IP>/
 - Scale-down uses a 5-minute stabilization window by default to prevent flapping
 - The HPA formula: `desiredReplicas = ceil(currentReplicas × currentUtilization / targetUtilization)`
 - metrics-server is installed imperatively for now; TODO: migrate to `aws_eks_addon` in Terraform
+
+## Step 11: Implement Liveness and Readiness Probes
+
+### What was done
+- Added **liveness probe** to `manifests/website-deployment.yaml`: HTTP GET on `/healthz.php` with 15s initial delay, 2s timeout, 20s period, 3 failures threshold
+- Added **readiness probe** to `manifests/website-deployment.yaml`: HTTP GET on `/ready.php` with 5s initial delay, 3s timeout, 10s period, 3 failures threshold
+- Updated application image to `v6` (same codebase; probes rely on existing endpoints)
+- Updated `manifests/website-deployment.yaml` with image tag `v6`
+
+### Deploy
+```powershell
+# Rebuild and push the updated image
+docker build -t ezwill/labrepo:v6 app/
+docker push ezwill/labrepo:v6
+
+# Apply updated deployment
+kubectl apply -f manifests/website-deployment.yaml
+
+# Verify rollout
+kubectl rollout status deployment/website --watch
+```
+
+### Test Liveness Probe
+```powershell
+# Simulate failure by removing the health endpoint
+kubectl exec website-f5484d4cc-hhb9f -- mv /var/www/html/healthz.php /var/www/html/healthz.php.off
+
+# Watch the pod restart automatically
+kubectl get pods -w
+
+# Restore the health endpoint
+kubectl exec website-f5484d4cc-hhb9f -- mv /var/www/html/healthz.php.off /var/www/html/healthz.php
+```
+
+### Test Readiness Probe
+```powershell
+# Scale down MySQL to simulate backend failure
+kubectl scale deployment mysql --replicas=0
+
+# Watch endpoints become empty (traffic removed)
+kubectl get endpoints website-service
+
+# Restore MySQL
+kubectl scale deployment mysql --replicas=1
+
+# Verify endpoints are restored
+kubectl get endpoints website-service
+```
+
+### Outcome
+- Kubernetes automatically restarted the pod when the liveness probe detected a 404 (unresponsive application)
+- Readiness probe correctly removed the pod from the service endpoints when MySQL was unavailable, preventing traffic to a broken pod
+- When MySQL came back online, the readiness probe detected it and restored traffic automatically
+- Demonstrates self-healing and traffic management — core reliability patterns for production workloads

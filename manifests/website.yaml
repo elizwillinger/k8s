@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: website
-        image: ezwill/labrepo:v5
+        image: ezwill/labrepo:v6
         ports:
         - containerPort: 80
         env:
@@ -40,15 +40,19 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "500m"
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 5
-          periodSeconds: 10
         livenessProbe:
           httpGet:
-            path: /
+            path: /healthz.php
             port: 80
           initialDelaySeconds: 15
           periodSeconds: 20
+          timeoutSeconds: 2
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready.php
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
